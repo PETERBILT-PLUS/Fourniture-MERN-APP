@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from "axios";
-import { useFetchOrdersAdmin } from "../../hooks/useFetchOrdersAdmin";
+import { useFetchOrdersAdmin } from "../../hooks/useFetchOrdersAdmin.ts";
 import { useState, useLayoutEffect } from "react";
 import { toast } from "react-toastify";
-import { useSocketContext } from "../../context/socketContext";
+import { useSocketContext } from "../../context/socketContext.tsx";
 import audio from "../../assets/sounds/notification.mp3";
 
 

@@ -1,11 +1,11 @@
 import { FormikHelpers, useFormik } from "formik";
-import { IListing, listingSchema } from "../../Configurations/listingSchema";
-import { useGetBrandsAndCategorys } from "../../hooks/useGetBrandsAndCategorys";
+import { IListing, listingSchema } from "../../Configurations/listingSchema.ts";
+import { useGetBrandsAndCategorys } from "../../hooks/useGetBrandsAndCategorys.ts";
 import { useLayoutEffect, useState } from "react";
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from "../../Configurations/firebase";
 import { toast } from "react-toastify";
-import CustomSubmitButton from "../../SubComponents/CustomSubmitButton/CustomSubmitButton";
+import CustomSubmitButton from "../../SubComponents/CustomSubmitButton/CustomSubmitButton.tsx";
 import axios, { AxiosResponse } from "axios";
 
 interface IImagesFile extends File {

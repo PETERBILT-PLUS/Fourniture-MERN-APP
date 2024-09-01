@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react'
-import { useFetchOrders } from '../../hooks/useFetchOrders';
+import { useFetchOrders } from '../../hooks/useFetchOrders.ts';
 
 function UserOrders() {
 

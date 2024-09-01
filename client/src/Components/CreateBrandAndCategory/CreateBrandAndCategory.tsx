@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import React, { useLayoutEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useGetBrandsAndCategorys } from "../../hooks/useGetBrandsAndCategorys";
+import { useGetBrandsAndCategorys } from "../../hooks/useGetBrandsAndCategorys.ts";
 
 function CreateBrandAndCategory() {
 

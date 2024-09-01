@@ -9,7 +9,7 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios, { AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
-import useProduct from '../../Configurations/basket';
+import useProduct from '../../Configurations/basket.ts';
 
 function GetSingleProduct() {
     const params = useParams();

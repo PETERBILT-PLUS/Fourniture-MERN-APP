@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from 'react';
-import CustomSubmitButton from '../../SubComponents/CustomSubmitButton/CustomSubmitButton';
+import CustomSubmitButton from '../../SubComponents/CustomSubmitButton/CustomSubmitButton.tsx';
 import axios, { AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
 

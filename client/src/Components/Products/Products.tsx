@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from "axios";
-import { useFetchProducts } from "../../hooks/useFetchProducts";
+import { useFetchProducts } from "../../hooks/useFetchProducts.ts";
 import "./Products.css";
 import { toast } from "react-toastify";
-import useProduct from "../../Configurations/basket";
+import useProduct from "../../Configurations/basket.ts";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { useLayoutEffect } from "react";

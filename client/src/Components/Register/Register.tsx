@@ -1,13 +1,13 @@
 import { FormikHelpers, useFormik } from 'formik';
 import { useLayoutEffect, useState } from 'react';
-import { registerShema } from '../../Configurations/registerSchema';
+import { registerShema } from '../../Configurations/registerSchema.ts';
 import axios from "axios";
-import CustomSubmitButton from '../../SubComponents/CustomSubmitButton/CustomSubmitButton';
+import CustomSubmitButton from '../../SubComponents/CustomSubmitButton/CustomSubmitButton.tsx';
 import { toast } from 'react-toastify';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { loginAdmin, logoutAdmin } from '../../Configurations/admin';
-import { loginUser, logoutUser } from '../../Configurations/main';
+import { loginAdmin, logoutAdmin } from '../../Configurations/admin.ts';
+import { loginUser, logoutUser } from '../../Configurations/main.ts';
 
 interface IFormValues {
     nom: string;
