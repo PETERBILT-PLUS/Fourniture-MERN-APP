@@ -39,7 +39,7 @@ export const register = async (req: Request, res: Response) => {
                 maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
                 sameSite: "strict",
                 httpOnly: true,
-                secure: DEVELOPMENT_MODE !== "development",
+                secure: DEVELOPMENT_MODE !== "development" ? false : true,
             });
 
             return res.status(200).json({
