@@ -25,7 +25,7 @@ export const getBasket = (req, res) => __awaiter(void 0, void 0, void 0, functio
             model: "Product"
         });
         if (!basketExist)
-            return res.status(404).json({ success: false, message: "Basket Pas Trouvé" });
+            return res.status(200).json({ success: true, data: [] });
         if (!basketExist.products)
             return res.status(200).json({ success: true, data: [] });
         let totalAmount = 0;
@@ -44,15 +44,14 @@ export const getBasket = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
         if (productUpdate) {
             basketExist.save().then((basket) => {
-                res.status(200).json({ success: true, basket: basket, totalAmount: totalAmount });
+                res.status(200).json({ success: true, data: basket.populate({ path: "products.product", model: "Product" }), totalAmount: totalAmount });
             }).catch((error) => {
                 console.error(error);
                 res.status(500).json({ success: false, message: "Erreur au cours D'analyser le Panier" });
             });
             return false;
         }
-        res.status(200).json({ success: true, data: basketExist.products, Totalamount: basketExist.totalAmount });
-        { }
+        res.status(200).json({ success: true, data: basketExist, Totalamount: basketExist.totalAmount });
     }
     catch (error) {
         console.error(error);
@@ -67,7 +66,7 @@ export const addToBasket = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const { product } = req.body;
         if (!product)
             return res.status(401).json({ success: false, message: "Manque D'informations" });
-        const basketExist = yield basketModel.findOne({ user: user_id });
+        let basketExist = yield basketModel.findOne({ user: user_id }).populate("products.product");
         if (!basketExist) {
             const productExist = yield productModel.findById(product._id);
             if (!productExist)
@@ -82,63 +81,45 @@ export const addToBasket = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 ],
                 totalAmount: productExist.price
             });
-            newBasket.save().then((basket) => {
-                res.status(201).json({ success: true, basket: basket });
-            }).catch((error) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Erreur au cours D'enregistrer le panier" });
-            });
-            return false;
+            yield newBasket.save();
+            yield newBasket.populate("products.product");
+            return res.status(201).json({ success: true, basket: newBasket });
         }
         let totalAmount = 0;
-        const productExisting = basketExist.products.find((elem) => String(elem.product) === String(product._id));
-        console.log(productExisting);
+        const productExisting = basketExist.products.find((elem) => String(elem.product._id) === String(product._id));
         if (productExisting) {
             const myProduct = yield productModel.findById(product._id);
-            const finder = basketExist.products.find((elem) => elem.product == product._id);
-            if (!finder)
+            if (!myProduct)
                 return res.status(404).json({ success: false, message: "Produit Pas Trouvé" });
-            if (Number(myProduct === null || myProduct === void 0 ? void 0 : myProduct.stock) === Number(finder.quantity)) {
+            if (Number(myProduct.stock) === Number(productExisting.quantity)) {
                 return res.status(200).json({ success: false, message: "Max Quantité" });
             }
             productExisting.quantity += 1;
-            for (let elem of basketExist.products) {
-                const newProductExisting = yield productModel.findById(productExisting.product);
-                if (newProductExisting) {
-                    totalAmount += (Number(elem.quantity) * Number(newProductExisting.price));
-                }
-            }
-            basketExist.totalAmount = totalAmount;
-            basketExist.save().then((basket) => {
-                res.status(201).json({ success: true, basket: basket });
-            }).catch((error) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Erreur Interne du Sreveur" });
-            });
         }
         else {
+            const productExist = yield productModel.findById(product._id);
+            if (!productExist)
+                return res.status(404).json({ success: false, message: "Produit Pas Trouvé" });
             basketExist.products.push({
-                product: product._id,
+                product: productExist._id,
                 quantity: 1,
             });
-            for (let elem of basketExist.products) {
-                const productExist = yield productModel.findById(elem.product);
-                if (productExist) {
-                    totalAmount += (Number(elem.quantity) * Number(productExist.price));
-                }
-            }
-            basketExist.totalAmount = totalAmount;
-            basketExist.save().then((basket) => {
-                res.status(201).json({ success: true, basket: basket });
-            }).catch((error) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Errue au cours D'enregistrer le Panier" });
-            });
         }
+        // Calculate totalAmount
+        for (let elem of basketExist.products) {
+            const productExist = yield productModel.findById(elem.product);
+            if (productExist) {
+                totalAmount += (Number(elem.quantity) * Number(productExist.price));
+            }
+        }
+        basketExist.totalAmount = totalAmount;
+        yield basketExist.save();
+        yield basketExist.populate("products.product");
+        return res.status(201).json({ success: true, basket: basketExist });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: "Erreur Inererne du Serveur" });
+        return res.status(500).json({ success: false, message: "Erreur Inererne du Serveur" });
     }
 });
 // this function is checked
@@ -174,7 +155,6 @@ export const addProductQuantity = (req, res) => __awaiter(void 0, void 0, void 0
     try {
         const user_id = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         const { product } = req.body;
-        console.log(product);
         if (!product)
             return res.status(401).json({ success: false, message: "Manque d'informations" });
         const basketExist = yield basketModel.findOne({ user: user_id });
@@ -238,13 +218,9 @@ export const minusProductQuantity = (req, res) => __awaiter(void 0, void 0, void
                 basketExist.products = basketExist.products.filter((elem) => {
                     elem.product.toString() !== basketExist.products[preciseIndex].product.toString();
                 });
-                basketExist.save().then((basket) => {
-                    res.status(200).json({ success: true, basket: basket });
-                }).catch((error) => {
-                    console.error(error);
-                    res.status(500).json({ success: false, message: "Une Erreur au Cours D'enregistrer le Panier" });
-                });
-                return false;
+                yield basketExist.save();
+                yield basketExist.populate("products.product");
+                return res.status(200).json({ success: true, basket: basketExist });
             }
             for (let elem of basketExist.products) {
                 const productExist = yield productModel.findById(elem.product);
@@ -253,12 +229,9 @@ export const minusProductQuantity = (req, res) => __awaiter(void 0, void 0, void
                 }
             }
             basketExist.totalAmount = totalAmount;
-            basketExist.save().then((basket) => {
-                res.status(200).json({ success: true, basket: basket });
-            }).catch((error) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Erreur au Cours D'enregistrer le Panier" });
-            });
+            yield basketExist.save();
+            yield basketExist.populate("products.product");
+            res.status(200).json({ success: true, basket: basketExist });
         }
     }
     catch (error) {

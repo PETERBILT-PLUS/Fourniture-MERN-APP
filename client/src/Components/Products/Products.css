@@ -1,0 +1,25 @@
+button.add-to-basket {
+    padding: 12px 22px;
+    background-color: var(--light-blue);
+    color: #fefefe;
+    border-radius: 8px;
+    transition: all 250ms ease-in-out;
+}
+
+button.add-to-basket:hover,
+button.add-to-basket:active {
+    background-color: var(--dark-blue);
+}
+
+button.see {
+    padding: 12px 22px;
+    background-color: var(--dark-blue);
+    color: #fefefe;
+    border-radius: 8px;
+    transition: all 250ms ease-in-out;
+}
+
+button.see:hover,
+button.see:active {
+    background-color: var(--light-blue);
+}

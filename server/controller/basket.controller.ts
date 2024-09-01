@@ -3,6 +3,7 @@ import userModel, { IUser } from "../model/user.model.js"
 import basketModel, { IBasket } from "../model/basket.model.js";
 import productModel, { IProduct } from "../model/product.model.js";
 import { IProduct as IBasketProduct } from "../model/basket.model.js";
+import { ObjectId } from "mongoose";
 
 
 // this fuction is checked
@@ -24,7 +25,7 @@ export const getBasket = async (req: Request, res: Response) => {
         });
 
 
-        if (!basketExist) return res.status(404).json({ success: false, message: "Basket Pas Trouvé" });
+        if (!basketExist) return res.status(200).json({ success: true, data: [] });
 
         if (!basketExist.products) return res.status(200).json({ success: true, data: [] });
 
@@ -46,7 +47,7 @@ export const getBasket = async (req: Request, res: Response) => {
 
         if (productUpdate) {
             basketExist.save().then((basket: IBasket) => {
-                res.status(200).json({ success: true, basket: basket, totalAmount: totalAmount });
+                res.status(200).json({ success: true, data: basket.populate({ path: "products.product", model: "Product" }), totalAmount: totalAmount });
             }).catch((error: any) => {
                 console.error(error);
                 res.status(500).json({ success: false, message: "Erreur au cours D'analyser le Panier" });
@@ -54,7 +55,7 @@ export const getBasket = async (req: Request, res: Response) => {
             return false;
         }
 
-        res.status(200).json({ success: true, data: basketExist.products, Totalamount: basketExist.totalAmount }); { }
+        res.status(200).json({ success: true, data: basketExist, Totalamount: basketExist.totalAmount });
     } catch (error: any) {
         console.error(error);
         res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
@@ -70,10 +71,12 @@ export const addToBasket = async (req: Request, res: Response) => {
 
         if (!product) return res.status(401).json({ success: false, message: "Manque D'informations" });
 
-        const basketExist: IBasket | null = await basketModel.findOne({ user: user_id });
+        let basketExist: IBasket | null = await basketModel.findOne({ user: user_id }).populate("products.product");
+
         if (!basketExist) {
             const productExist: IProduct | null = await productModel.findById(product._id);
             if (!productExist) return res.status(404).json({ success: false, message: "Produit Pas Trouvé" });
+
             const newBasket: IBasket = new basketModel({
                 user: user_id,
                 products: [
@@ -85,68 +88,52 @@ export const addToBasket = async (req: Request, res: Response) => {
                 totalAmount: productExist.price
             });
 
-            newBasket.save().then((basket: IBasket) => {
-                res.status(201).json({ success: true, basket: basket });
-            }).catch((error: any) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Erreur au cours D'enregistrer le panier" });
-            })
+            await newBasket.save();
+            await newBasket.populate("products.product");
 
-            return false;
+            return res.status(201).json({ success: true, basket: newBasket });
         }
 
         let totalAmount: number = 0;
 
-        const productExisting = basketExist.products.find((elem: any) => String(elem.product) === String(product._id));
-        console.log(productExisting)
+        const productExisting = basketExist.products.find((elem: any) => String(elem.product._id) === String(product._id));
         if (productExisting) {
             const myProduct: IProduct | null = await productModel.findById(product._id);
-            const finder = basketExist.products.find((elem) => elem.product == product._id);
-            if (!finder) return res.status(404).json({ success: false, message: "Produit Pas Trouvé" });
-            if (Number(myProduct?.stock) === Number(finder.quantity)) {
+            if (!myProduct) return res.status(404).json({ success: false, message: "Produit Pas Trouvé" });
+            if (Number(myProduct.stock) === Number(productExisting.quantity)) {
                 return res.status(200).json({ success: false, message: "Max Quantité" });
             }
             productExisting.quantity += 1;
-            for (let elem of basketExist.products) {
-                const newProductExisting: IProduct | null = await productModel.findById(productExisting.product);
-                if (newProductExisting) {
-                    totalAmount += (Number(elem.quantity) * Number(newProductExisting.price));
-                }
-            }
-            basketExist.totalAmount = totalAmount;
-            basketExist.save().then((basket: IBasket) => {
-                res.status(201).json({ success: true, basket: basket });
-            }).catch((error: any) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Erreur Interne du Sreveur" });
-            });
         } else {
+            const productExist: IProduct | null = await productModel.findById(product._id);
+            if (!productExist) return res.status(404).json({ success: false, message: "Produit Pas Trouvé" });
+
             basketExist.products.push({
-                product: product._id,
+                product: productExist._id as ObjectId,
                 quantity: 1,
             });
-
-            for (let elem of basketExist.products) {
-                const productExist: IProduct | null = await productModel.findById(elem.product);
-                if (productExist) {
-                    totalAmount += (Number(elem.quantity) * Number(productExist.price))
-                }
-            }
-
-            basketExist.totalAmount = totalAmount;
-
-            basketExist.save().then((basket: IBasket) => {
-                res.status(201).json({ success: true, basket: basket });
-            }).catch((error) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Errue au cours D'enregistrer le Panier" })
-            });
         }
+
+        // Calculate totalAmount
+        for (let elem of basketExist.products) {
+            const productExist: IProduct | null = await productModel.findById(elem.product);
+            if (productExist) {
+                totalAmount += (Number(elem.quantity) * Number(productExist.price));
+            }
+        }
+        basketExist.totalAmount = totalAmount;
+
+        await basketExist.save();
+        await basketExist.populate("products.product");
+
+        return res.status(201).json({ success: true, basket: basketExist });
+
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: "Erreur Inererne du Serveur" });
+        return res.status(500).json({ success: false, message: "Erreur Inererne du Serveur" });
     }
 }
+
 
 // this function is checked
 export const removeFromBasket = async (req: Request, res: Response) => {
@@ -180,15 +167,12 @@ export const removeFromBasket = async (req: Request, res: Response) => {
 }
 
 
-
 // this function is ckecked
 export const addProductQuantity = async (req: Request, res: Response) => {
     try {
         const user_id = req.user?._id;
         const { product } = req.body;
 
-        console.log(product);
-        
 
         if (!product) return res.status(401).json({ success: false, message: "Manque d'informations" });
 
@@ -270,13 +254,11 @@ export const minusProductQuantity = async (req: Request, res: Response) => {
                 basketExist.products = basketExist.products.filter((elem) => {
                     elem.product.toString() !== basketExist.products[preciseIndex].product.toString();
                 });
-                basketExist.save().then((basket: IBasket) => {
-                    res.status(200).json({ success: true, basket: basket });
-                }).catch((error: any) => {
-                    console.error(error);
-                    res.status(500).json({ success: false, message: "Une Erreur au Cours D'enregistrer le Panier" });
-                });
-                return false;
+
+                await basketExist.save();
+                await basketExist.populate("products.product");
+
+                return res.status(200).json({ success: true, basket: basketExist });
             }
 
             for (let elem of basketExist.products) {
@@ -287,12 +269,11 @@ export const minusProductQuantity = async (req: Request, res: Response) => {
             }
 
             basketExist.totalAmount = totalAmount;
-            basketExist.save().then((basket: IBasket) => {
-                res.status(200).json({ success: true, basket: basket });
-            }).catch((error) => {
-                console.error(error);
-                res.status(500).json({ success: false, message: "Erreur au Cours D'enregistrer le Panier" });
-            });
+
+            await basketExist.save();
+            await basketExist.populate("products.product");
+
+            res.status(200).json({ success: true, basket: basketExist });
         }
     } catch (error) {
         console.error(error);

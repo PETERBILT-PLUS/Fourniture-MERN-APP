@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import userModel, { IUser } from "../model/user.model.js";
 import bcrypt from "bcrypt";
+import userMessageModel, { IUserMEssage } from "../model/user.message.model.js";
+import { getUserSocketId, io } from "../socket/socket.js";
+import adminModel, { IAdmin } from "../model/admin.model.js";
+import storeDetailsModel, { IStoreDetails } from "../model/storeDetails.model.js";
 
 
-
+// this function is checked
 export const viewProfile = async (req: Request, res: Response) => {
     try {
         const user_id = req.user?._id;
@@ -19,6 +23,20 @@ export const viewProfile = async (req: Request, res: Response) => {
     }
 }
 
+
+export const getStoreDetails = async (req: Request, res: Response) => {
+    try {
+        const detail: IStoreDetails[] = await storeDetailsModel.find({});
+        const realDetail = detail[0];
+
+        res.status(200).json({ success: true, details: realDetail });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
+    }
+}
+
+// this function is checked
 export const editProfile = async (req: Request, res: Response) => {
     try {
         const user_id = req.user?._id;
@@ -42,5 +60,36 @@ export const editProfile = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
+    }
+}
+
+
+// this function is checked
+export const sendMessageToAdmin = async (req: Request, res: Response) => {
+    try {
+        const user_id = req.user?._id;
+        const { name, message } = req.body;
+
+        if (!name || !message) return res.status(400).json({ succes: false, message: "Manque D'informations" });
+
+        const newMessage: IUserMEssage = new userMessageModel({
+            name: name,
+            message: message
+        });
+
+        const admin: IAdmin[] = await adminModel.find({});
+        const adminExist: IAdmin = admin[0];
+
+        newMessage.save().then((message: IUserMEssage) => {
+            const receiver: string = getUserSocketId(adminExist?._id as string);
+            io.to(receiver).emit("userMessage", message);
+            res.status(201).json({ success: true });
+        }).catch((error: any) => {
+            console.error(error);
+            res.status(500).json({ succes: false, message: "Erreur au cours D'enregistrer le Message" });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ succes: false, message: "Erreur Interne du Serveur" });
     }
 }

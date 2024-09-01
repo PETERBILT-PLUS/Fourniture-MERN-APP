@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 
 export const app: Express = express();
 
-const CLIENT = process.env.CLIENT;
+const CLIENT = process.env.CLIENT as string;
 
 if (!CLIENT) {
     throw new Error("The CLIENT variable is not availabe please check the .env file");

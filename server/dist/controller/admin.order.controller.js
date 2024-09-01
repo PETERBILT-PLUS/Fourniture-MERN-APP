@@ -12,9 +12,12 @@ import { getUserSocketId, io } from "../socket/socket.js";
 // This function is checked
 export const getAdminOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const orders = yield orderModel.find({});
+        const orders = yield orderModel
+            .find({})
+            .populate({ path: "customer", model: "User" })
+            .populate({ path: "products.product", model: "Product" });
         if (!orders.length)
-            return res.status(404).json({ success: true, message: "Pas D'ordres", data: [] });
+            return res.status(200).json({ success: true, message: "Pas D'ordres", data: [] });
         res.status(200).json({ success: true, data: orders });
     }
     catch (error) {
@@ -47,3 +50,18 @@ export const changeOrderStatus = (req, res) => __awaiter(void 0, void 0, void 0,
     }
 });
 // Add more delete...
+export const deleteOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const order_id = req.query.order_id;
+        if (!order_id)
+            return res.status(404).json({ succeess: false, message: "Manque D'informations" });
+        const orderDelete = yield orderModel.findByIdAndDelete(order_id);
+        if (!orderDelete)
+            return res.status(404).json({ success: false, message: "Order Pas Trouvé" });
+        res.status(200).json({ success: true, order: orderDelete.toObject() });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
+    }
+});

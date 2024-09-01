@@ -1,0 +1,10 @@
+button.custom-submit-button {
+    background-color: var(--light-blue);
+    color: #fefefe;
+    border-radius: 8px;
+    transition: background-color 250ms ease-in-out;
+}
+
+button.custom-submit-button:hover, button.custom-submit-button:active {
+    background-color: var(--dark-blue);
+}

@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import adminModel, { IAdmin } from "../model/admin.model.js";
 import userModel, { IUser } from "../model/user.model.js";
-import messageModel, { IMessage } from "../model/message.model";
+import messageModel, { IMessage } from "../model/message.model.js";
 import conversationModel, { IConversation } from "../model/conversation.model.js";
+import { getUserSocketId, io } from "../socket/socket.js";
 
 
 // Function to send a message
@@ -49,8 +50,12 @@ export const sendMessage = async (req: Request, res: Response) => {
                 });
 
                 // Save the conversation and message
+                const admin: IAdmin[] = await adminModel.find({});
+                const adminExist = admin[0];
                 newConversation.save().then(async (conversation: IConversation) => {
                     newMessage.save().then((message: IMessage) => {
+                        const receiver: string = getUserSocketId(adminExist?._id as string);
+                        io.to(receiver).emit("newMessage", message);
                         // Socket logic here
                         res.status(201).json({ success: true, message: message });
                     }).catch((error: any) => {
@@ -74,9 +79,13 @@ export const sendMessage = async (req: Request, res: Response) => {
             conversationExist.messages.push(newMessage._id as string);
 
             // Save the updated conversation and new message
+            const admin: IAdmin[] = await adminModel.find({});
+            const adminExist = admin[0];
             conversationExist.save().then(() => {
                 newMessage.save().then((message: IMessage) => {
                     // Socket logic here
+                    const receiver: string = getUserSocketId(adminExist?._id as string);
+                    io.to(receiver).emit("newMessage", message);
                     res.status(201).json({ success: true, message: message });
                 }).catch((error: any) => {
                     console.error(error);
@@ -97,16 +106,18 @@ export const sendMessage = async (req: Request, res: Response) => {
 export const getSingleMessages = async (req: Request, res: Response) => {
     try {
         const userId = req.user?._id;
-        const adminId = req.admin?._id; // Assuming `req.admin` exists if an admin is logged in.
         const { receiverId } = req.body;
 
-        if (!receiverId || (!userId && !adminId)) {
+        if (!receiverId || !userId) {
             return res.status(400).json({ success: false, message: "Missing information" });
         }
 
+        const admin: IAdmin[] = await adminModel.find({});
+        const adminExist = admin[0];
+
         // Find the conversation and populate messages
         const conversation: IConversation | null = await conversationModel.findOne({
-            participants: { $all: [userId || adminId, receiverId] }
+            participants: { $all: [userId, adminExist?._id as string] }
         }).populate('messages'); // Populate messages to get the full message objects
 
         if (!conversation) {
@@ -151,3 +162,14 @@ export const getAdminUsersForSidebar = async (req: Request, res: Response) => {
     }
 }
 
+
+export const getUsers = async (req: Request, res: Response) => {
+    try {
+        const users: IUser[] = await userModel.find({});
+
+        res.status(200).json({ success: true, data: users });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
+    }
+}

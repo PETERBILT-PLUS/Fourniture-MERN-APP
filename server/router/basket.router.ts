@@ -6,6 +6,6 @@ export const basketRouter = express.Router();
 
 basketRouter.get("/get-basket", checkUser, getBasket);
 basketRouter.post("/add-to-basket", checkUser, addToBasket);
-basketRouter.post("/add-product-quantity", checkUser, addProductQuantity);
+basketRouter.post("/add-product-quantity", checkUser, addToBasket);
 basketRouter.post("/minus-product-quantity", checkUser, minusProductQuantity);
 basketRouter.delete("/delete-from-basket", checkUser, removeFromBasket);

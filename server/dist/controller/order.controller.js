@@ -16,7 +16,7 @@ export const getUserOrders = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const user_id = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         const orderExist = yield orderModel.find({
             customer: user_id,
-        });
+        }).populate("products.product");
         if (!orderExist || orderExist.length === 0)
             return res.status(200).json({ success: true, order: [] });
         res.status(200).json({ success: true, order: orderExist });
@@ -30,17 +30,18 @@ export const makeOrder = (req, res) => __awaiter(void 0, void 0, void 0, functio
     var _a;
     try {
         const user_id = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-        const { products, basket_id } = req.body;
-        if (!user_id || !basket_id || !products || !Array.isArray(products)) {
+        if (!user_id) {
             return res.status(401).json({ success: false, message: "Manque D'informations" });
         }
         // Find if the user already has an active order
-        const order = yield orderModel.findOne({
-            customer: user_id,
+        const basketExist = yield basketModel.findOne({
+            user: user_id,
         });
+        if (!basketExist)
+            return res.status(404).json({ sucess: false, message: "Panier Pas Trouvé" });
         let totalAmount = 0;
         // Create a new order if one doesn't exist
-        for (const elem of products) {
+        for (const elem of basketExist.products) {
             const productExist = yield productModel.findById(elem.product);
             if (productExist) {
                 totalAmount += (Number(productExist.price) * Number(elem.quantity));
@@ -48,14 +49,16 @@ export const makeOrder = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
         const newOrder = new orderModel({
             customer: user_id,
-            products: products.map((elem, index) => ({
-                product: elem._id,
-                quantity: elem.products[index].product,
+            products: basketExist.products.map((elem) => ({
+                product: elem.product,
+                quantity: elem.quantity,
             })),
             totalAmount: totalAmount,
             status: "pending",
         });
-        const deleteBasket = yield basketModel.findByIdAndDelete(basket_id);
+        const deleteBasket = yield basketModel.findOneAndDelete({
+            user: user_id,
+        });
         if (!deleteBasket)
             return res.status(404).json({ success: false, message: "Panier Pas Trouvé" });
         newOrder.save().then((order) => {
@@ -65,7 +68,6 @@ export const makeOrder = (req, res) => __awaiter(void 0, void 0, void 0, functio
             res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
         });
         // Emit socket event or any other business logic
-        res.status(201).json({ success: true, message: "Ordre Crée avec Succès", order: newOrder });
     }
     catch (error) {
         console.error(error);

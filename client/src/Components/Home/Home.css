@@ -1,0 +1,30 @@
+button.reserve-btn {
+    padding: 14px 24px;
+    background-color: var(--light-blue);
+    border-radius: 12px;
+    color: #fefefe;
+    transition: background-color 250ms ease-in-out;
+}
+
+button.reserve-btn:hover {
+    background-color: var(--dark-blue);
+}
+
+div section.hero-section {
+    background-image: url("../../assets/hero-image.jpg");
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-blend-mode: darken;
+    background-color: rgba(0, 0, 0, 0.18);
+}
+
+button.contact-btn {
+    background-color: var(--light-blue);
+    color: #fefefe;
+    transition: background-color 250ms ease-in-out;
+}
+
+button.contact-btn:hover, button.contact-btn:active {
+    background-color: var(--dark-blue);
+}

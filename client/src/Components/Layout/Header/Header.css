@@ -1,0 +1,79 @@
+header {
+    background-color: #fefefecc;
+    position: relative;
+}
+
+a {
+    font-size: 1.1em;
+}
+
+a.nav-link {
+    color: var(--dark);
+}
+
+a.nav-link-active {
+    color: var(--light-blue);
+}
+
+button.sign-in-button {
+    padding: 11px 22px;
+    border: solid 1px var(--light-blue);
+    color: var(--light-blue);
+    border-radius: 12px;
+    transition: all 250ms ease-in-out;
+}
+
+button.sign-in-button:hover {
+    background-color: var(--light-blue);
+    color: #fefefe;
+}
+
+button.create-account {
+    padding: 11px 22px;
+    background-color: var(--light-blue);
+    border-radius: 12px;
+    color: #fefefe;
+    border: solid 1px var(--light-blue);
+    transition: all 250ms ease-in-out;
+}
+
+button.create-account:hover {
+    background-color: transparent;
+    color: var(--light-blue);
+}
+
+header nav.mobile-navigation {
+    position: fixed;
+    width: 80vw;
+    top: 80px;
+    height: 100vh;
+    z-index: 999;
+    transform: translateX(200vw);
+    transition: all 250ms ease-in-out;
+}
+
+header nav.mobile-navigation-active {
+    position: fixed;
+    background-color: #fefefe;
+    width: 100vw;
+    top: 80px;
+    height: 100vh;
+    z-index: 999;
+    transition: all 250ms ease-in-out;
+    transform: translateX(0%);
+}
+
+button.sign-out-btn {
+    color: #fefefe;
+    background-color: var(--light-blue);
+    border: var(--light-blue) 1px solid;
+    border-radius: 10px;
+    transition: 250ms all ease-in-out;
+    padding: 11px 22px;
+}
+
+button.sign-out-btn:hover,
+button.sign-out-btn:active {
+    background-color: transparent;
+    color: var(--light-blue);
+}

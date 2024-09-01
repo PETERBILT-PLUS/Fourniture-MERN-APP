@@ -9,8 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import adminModel from "../model/admin.model.js";
 import userModel from "../model/user.model.js";
-import messageModel from "../model/message.model";
+import messageModel from "../model/message.model.js";
 import conversationModel from "../model/conversation.model.js";
+import { getUserSocketId, io } from "../socket/socket.js";
 // Function to send a message
 export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -48,8 +49,12 @@ export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     messages: [newMessage._id]
                 });
                 // Save the conversation and message
+                const admin = yield adminModel.find({});
+                const adminExist = admin[0];
                 newConversation.save().then((conversation) => __awaiter(void 0, void 0, void 0, function* () {
                     newMessage.save().then((message) => {
+                        const receiver = getUserSocketId(adminExist === null || adminExist === void 0 ? void 0 : adminExist._id);
+                        io.to(receiver).emit("newMessage", message);
                         // Socket logic here
                         res.status(201).json({ success: true, message: message });
                     }).catch((error) => {
@@ -70,9 +75,13 @@ export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
             });
             conversationExist.messages.push(newMessage._id);
             // Save the updated conversation and new message
+            const admin = yield adminModel.find({});
+            const adminExist = admin[0];
             conversationExist.save().then(() => {
                 newMessage.save().then((message) => {
                     // Socket logic here
+                    const receiver = getUserSocketId(adminExist === null || adminExist === void 0 ? void 0 : adminExist._id);
+                    io.to(receiver).emit("newMessage", message);
                     res.status(201).json({ success: true, message: message });
                 }).catch((error) => {
                     console.error(error);
@@ -91,17 +100,18 @@ export const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
 });
 // Function to get messages from a conversation
 export const getSingleMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     try {
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-        const adminId = (_b = req.admin) === null || _b === void 0 ? void 0 : _b._id; // Assuming `req.admin` exists if an admin is logged in.
         const { receiverId } = req.body;
-        if (!receiverId || (!userId && !adminId)) {
+        if (!receiverId || !userId) {
             return res.status(400).json({ success: false, message: "Missing information" });
         }
+        const admin = yield adminModel.find({});
+        const adminExist = admin[0];
         // Find the conversation and populate messages
         const conversation = yield conversationModel.findOne({
-            participants: { $all: [userId || adminId, receiverId] }
+            participants: { $all: [userId, adminExist === null || adminExist === void 0 ? void 0 : adminExist._id] }
         }).populate('messages'); // Populate messages to get the full message objects
         if (!conversation) {
             return res.status(404).json({ success: false, message: "Conversation not found" });
@@ -133,6 +143,16 @@ export const getAdminUsersForSidebar = (req, res) => __awaiter(void 0, void 0, v
             _id: { $in: Array.from(participantsIds) }
         });
         res.status(200).json({ success: true, users: users });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
+    }
+});
+export const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const users = yield userModel.find({});
+        res.status(200).json({ success: true, data: users });
     }
     catch (error) {
         console.error(error);

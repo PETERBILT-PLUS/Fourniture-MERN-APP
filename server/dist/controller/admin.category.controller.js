@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import categoryModel from "../model/category.model.js";
+import brandModel from "../model/brand.model.js";
 // this controller is checked form the errors
 export const createCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -30,18 +31,35 @@ export const createCategory = (req, res) => __awaiter(void 0, void 0, void 0, fu
         res.status(500).json({ success: false, message: "Erreur Interne du Serveur" });
     }
 });
-export const getCategoryProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+export const createBrand = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { category_name } = req.query;
-        if (!category_name)
-            return res.status(401).json({ success: false, message: "Nom de Category n'est pas trouvé" });
-        const categoryProducts = yield categoryModel.findOne({ categoryName: category_name }).populate("categoryProducts");
-        if (!categoryProducts)
-            return res.status(404).json({ success: false, message: "Category Pas Trouvé" });
-        if (((_a = categoryProducts === null || categoryProducts === void 0 ? void 0 : categoryProducts.categoryProducts) === null || _a === void 0 ? void 0 : _a.length) === 0)
-            return res.status(200).json({ success: true, message: "Pas De produit avec cette category" });
-        res.status(404).json({ success: true, categoryProducts: categoryProducts.categoryProducts });
+        const { name, base64Photo } = req.body;
+        if (!name || !base64Photo)
+            return res.status(400).json({ success: false, message: "Manque D'informations" });
+        const brandExist = yield brandModel.findOne({ name: name });
+        if (brandExist)
+            return res.status(400).json({ success: false, message: "Brand Est déja Existé" });
+        const newBrand = new brandModel({
+            name: name,
+            base64Photo: base64Photo,
+        });
+        newBrand.save().then((brand) => {
+            res.status(201).json({ success: true, brand: brand });
+        }).catch((error) => {
+            console.error(error);
+            res.status(500).json({ success: false, message: "Erreur au cours D'enregistrer le document" });
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+});
+export const getCategoryAndBrands = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const categorys = yield categoryModel.find({});
+        const brands = yield brandModel.find({});
+        res.status(200).json({ success: true, data: { categorys, brands } });
     }
     catch (error) {
         console.error(error);
