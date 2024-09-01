@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import orderModel from "../model/order.model.js";
 import productModel from "../model/product.model.js";
 import basketModel from "../model/basket.model.js";
+import adminModel from "../model/admin.model.js";
+import { getUserSocketId, io } from "../socket/socket.js";
 export const getUserOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -61,7 +63,11 @@ export const makeOrder = (req, res) => __awaiter(void 0, void 0, void 0, functio
         });
         if (!deleteBasket)
             return res.status(404).json({ success: false, message: "Panier Pas Trouvé" });
+        const admin = yield adminModel.find({});
+        const realAdmin = admin[0];
         newOrder.save().then((order) => {
+            const userSocket = getUserSocketId(realAdmin._id);
+            io.to(userSocket).emit("newOrder", order);
             res.status(201).json({ success: true, order: order });
         }).catch((error) => {
             console.error(error);
