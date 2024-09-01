@@ -13,6 +13,8 @@ function Orders() {
     const URL = import.meta.env.VITE_SERVER as string;
     const socket = useSocketContext();
 
+    console.log(saveLoading);
+
     useLayoutEffect(() => {
         document.title = "Ordres";
     }, []);

@@ -10,6 +10,8 @@ function Footer() {
   const URL: string = import.meta.env.VITE_SERVER as string;
   const [data, setData] = useState<any>({});
 
+  console.log(loading);
+
   useEffect(() => {
     const getData = async () => {
       setLoading(true);

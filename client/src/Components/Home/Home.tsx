@@ -1,48 +1,13 @@
 import { Link } from "react-router-dom";
 import SVG from "../../assets/undraw_mobile_search_jxq5.svg";
-import axios, { AxiosResponse } from "axios";
 import "./Home.css";
-import { useLayoutEffect, useState } from "react";
-import { toast } from "react-toastify";
-import CustomSubmitButton from "../../SubComponents/CustomSubmitButton/CustomSubmitButton";
+import { useLayoutEffect } from "react";
 
 function Home() {
-    const baseURL = import.meta.env.VITE_SERVER;
-    const [name, setName] = useState<string>("");
-    const [message, setMessage] = useState<string>("");
-    const [loading, setLoading] = useState<boolean>(false);
-
     useLayoutEffect(() => {
         document.title = "Acceuil";
     }, [])
 
-
-    const sendMessage = async () => {
-        try {
-            setLoading(true);
-            if (!name || !message) return alert("Veuillez remplir tous les champs");
-
-            const res: AxiosResponse<any, any> = await axios.post(`${baseURL}/message/send-user-message`, { message: message, name: name }, {
-                withCredentials: true,
-            });
-
-            if (res.data.success) {
-                toast.success("Message envoyé avec succès");
-                setName("");
-                setMessage("");
-                return false;
-            }
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                if (error.response?.status === 400) {
-                    toast.warning(error.response?.data.message);
-                    return false;
-                }
-            }
-        } finally {
-            setLoading(false);
-        }
-    }
 
     return (
         <div>
@@ -73,7 +38,7 @@ function Home() {
 
             <section className="pt-24 lg:pt-14 min-h-screen bg-slate-100">
                 <h2 className="text-center text-3xl py-20">Localisation GPS</h2>
-                <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3325.596459348746!2d-7.720806124305409!3d33.537876073354894!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzPCsDMyJzE2LjQiTiA3wrA0MycwNS42Ilc!5e0!3m2!1sen!2sma!4v1725123342157!5m2!1sen!2sma" width="600" height="450" style={{ border: "0" }} allowFullScreen={""} className="w-full min-h-screen" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3325.596459348746!2d-7.720806124305409!3d33.537876073354894!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzPCsDMyJzE2LjQiTiA3wrA0MycwNS42Ilc!5e0!3m2!1sen!2sma!4v1725123342157!5m2!1sen!2sma" width="600" height="450" style={{ border: "0" }} allowFullScreen={true} className="w-full min-h-screen" loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
             </section>
 
         </div>

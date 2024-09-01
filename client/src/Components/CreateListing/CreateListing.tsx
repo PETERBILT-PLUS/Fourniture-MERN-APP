@@ -85,6 +85,7 @@ function CreateListing() {
             const response: AxiosResponse<any, any> = await axios.post(`${URL}/admin/create-listing`, values, { withCredentials: true });
             if (response.data.success) {
                 toast.success("Produit Crée avec Succès");
+                actions.resetForm();
             }
         } catch (error: any) {
             if (axios.isAxiosError(error)) {
@@ -138,7 +139,7 @@ function CreateListing() {
                                 <option value="" disabled>Category</option>
                                 {categorys?.map((elem: any, index: number) => {
                                     return (
-                                        <option value={elem.categoryName} >{elem.categoryName}</option>
+                                        <option key={index} value={elem.categoryName} >{elem.categoryName}</option>
                                     );
                                 })}
                             </select>

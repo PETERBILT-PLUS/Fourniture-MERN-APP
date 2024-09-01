@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useFetchOrders } from '../../hooks/useFetchOrders';
 
 function UserOrders() {

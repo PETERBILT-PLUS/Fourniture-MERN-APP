@@ -9,6 +9,7 @@ function Basket() {
     const URL: string = import.meta.env.VITE_SERVER as string;
     const [basket, setBasket] = useState<any>([]);
 
+    console.log(basket);
 
     useLayoutEffect(() => {
         document.title = "Panier";

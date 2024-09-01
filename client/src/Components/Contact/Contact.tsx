@@ -1,5 +1,5 @@
+import { useEffect, useLayoutEffect, useState } from 'react'
 import axios, { AxiosResponse } from 'axios';
-import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 
 function Contact() {

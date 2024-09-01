@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useFetchUsers } from '../../hooks/useFetchUsers';
 import axios, { AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
