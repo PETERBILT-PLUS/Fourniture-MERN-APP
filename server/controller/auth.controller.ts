@@ -37,7 +37,7 @@ export const register = async (req: Request, res: Response) => {
 
             res.cookie("token", token, {
                 maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-                sameSite: "strict",
+                sameSite: "none",
                 httpOnly: true,
                 secure: DEVELOPMENT_MODE !== "development" ? false : true,
             });
@@ -68,7 +68,7 @@ export const register = async (req: Request, res: Response) => {
         const token = jwt.sign({ _id: newUser._id }, JWT_SECRET, { expiresIn: "30d" })
         res.cookie("token", token, {
             maxAge: 1000 * 60 * 60 * 24 * 30,
-            sameSite: "strict",
+            sameSite: "none",
             secure: DEVELOPMENT_MODE == "development" ? false : true,
             httpOnly: true,
         });
@@ -106,7 +106,7 @@ export const login = async (req: Request, res: Response) => {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 secure: DEVELOPMENT_MODE == "development" ? false : true,
                 httpOnly: true,
-                sameSite: "strict"
+                sameSite: "none"
             });
 
             res.status(200).json({ success: true, message: "Admin Login Succès", admin: adminExist.toObject() });
@@ -124,7 +124,7 @@ export const login = async (req: Request, res: Response) => {
 
         res.status(200).cookie("token", token, {
             maxAge: 100 * 60 * 60 * 24 * 30,
-            sameSite: "strict",
+            sameSite: "none",
             httpOnly: true,
             secure: DEVELOPMENT_MODE == "development" ? false : true,
         });
